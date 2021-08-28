@@ -1,0 +1,8 @@
+name: Methyl
+version: '${version}'
+main: live.turna.methyl.MethylLoader
+api-version: 1.16
+prefix: Methyl
+authors: [ TurnALive ]
+description: Minecraft utils made for TurnALive servers.
+website: https://turna.live
