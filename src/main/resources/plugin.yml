@@ -6,3 +6,9 @@ prefix: Methyl
 authors: [ TurnALive ]
 description: Minecraft utils made for TurnALive servers.
 website: https://turna.live
+
+commands:
+  skull:
+    description: 根据玩家名获取头颅，可选择是否强制从外置登录获取
+    usage: /<command> [owner] [forceYggdrasil (true,false)]
+    permission: methyl.command.skull
