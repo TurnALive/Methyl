@@ -28,6 +28,11 @@ public class SkullCommand implements TabExecutor {
         if (sender instanceof Player) {
             final Player player = (Player) sender;
 
+            if (player.getInventory().firstEmpty() < 0) {
+                new MessageBuilder().append(ChatColor.RED, "你的背包满了，不考虑整理下吗？").send(player);
+                return true;
+            }
+
             if (args.length < 1) {
                 new MessageBuilder()
                         .append(ChatColor.GOLD, "用法: ")
