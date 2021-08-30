@@ -2,9 +2,10 @@ package live.turna.methyl.command;
 
 import com.google.common.collect.ImmutableList;
 import live.turna.methyl.MethylLoader;
-import live.turna.methyl.util.MessageBuilder;
+import live.turna.methyl.util.MessageUtil;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -27,22 +28,25 @@ public class SkullCommand implements TabExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             final Player player = (Player) sender;
+            ComponentBuilder msg = MessageUtil.prepareNewComponent();
 
             if (player.getInventory().firstEmpty() < 0) {
-                new MessageBuilder().append(ChatColor.RED, "你的背包满了，不考虑整理下吗？").send(player);
+                msg.append("你的背包满了，不考虑整理下吗？").color(ChatColor.RED);
+                player.spigot().sendMessage(msg.create());
                 return true;
             }
 
             if (args.length < 1) {
-                new MessageBuilder()
-                        .append(ChatColor.GOLD, "用法: ")
-                        .append(ChatColor.RESET, "/skull ")
-                        .append(ChatColor.RED, "<玩家名> ")
-                        .append(ChatColor.GRAY, "[强制外置登录 (true, false)]")
-                        .send(player);
-                new MessageBuilder()
-                        .append(ChatColor.GOLD, "头颅默认将会从正版用户中获取，如有和正版用户撞名字的情况可选择强制从外置登录获取")
-                        .send(player);
+                msg.append("用法: ").color(ChatColor.GOLD)
+                        .append("/skull ").reset()
+                        .append("<玩家名> ").color(ChatColor.RED)
+                        .append("[强制外置登录 (true, false)]").color(ChatColor.GRAY);
+                player.spigot().sendMessage(msg.create());
+
+                msg = MessageUtil.prepareNewComponent()
+                        .append("头颅默认将会从正版用户中获取，如有和正版用户撞名字的情况可选择强制从外置登录获取").color(ChatColor.GOLD);
+                player.spigot().sendMessage(msg.create());
+
                 return true;
             }
 
@@ -50,20 +54,15 @@ public class SkullCommand implements TabExecutor {
             final boolean forceYggdrasil = args.length > 1 && Boolean.parseBoolean(args[1]);
 
             if (!NAME_PATTERN.matcher(skullOwner).matches()) {
-                new MessageBuilder()
-                        .append(
-                                ChatColor.RED,
-                                "玩家名有误，玩家名仅有英文字母、数字和下划线，且不得短于 3 字符，不得长于 16 字符"
-                        )
-                        .send(player);
+                msg.append("玩家名有误，玩家名仅有英文字母、数字和下划线，且不得短于 3 字符，不得长于 16 字符").color(ChatColor.RED);
+                player.spigot().sendMessage(msg.create());
                 return true;
             }
 
-            new MessageBuilder()
-                    .append(ChatColor.GOLD, forceYggdrasil ? "正在从外置登录获取 " : "正在获取 ")
-                    .append(ChatColor.RED, skullOwner)
-                    .append(ChatColor.GOLD, " 的头颅，请稍候...")
-                    .send(player);
+            msg.append(forceYggdrasil ? "正在从外置登录获取 " : "正在获取 ").color(ChatColor.GOLD)
+                    .append(skullOwner).color(ChatColor.RED)
+                    .append(" 的头颅，请稍候...").color(ChatColor.GOLD);
+            player.spigot().sendMessage(msg.create());
 
             // Using scheduler to prevent interruption of game while fetching skull information
             Bukkit.getScheduler().runTaskAsynchronously(MethylLoader.getInstance(), () -> {
@@ -73,7 +72,9 @@ public class SkullCommand implements TabExecutor {
                 head.setItemMeta(meta);
                 player.getInventory().addItem(head);
 
-                new MessageBuilder().append(ChatColor.GOLD, "头颅已到，请查收！").send(player);
+                ComponentBuilder completeMsg = MessageUtil.prepareNewComponent()
+                        .append("头颅已到，请查收！").color(ChatColor.GOLD);
+                player.spigot().sendMessage(completeMsg.create());
             });
         }
 
