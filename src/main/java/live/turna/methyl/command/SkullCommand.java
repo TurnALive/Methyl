@@ -3,6 +3,7 @@ package live.turna.methyl.command;
 import com.google.common.collect.ImmutableList;
 import live.turna.methyl.MethylLoader;
 import live.turna.methyl.util.MessageUtil;
+import live.turna.methyl.util.Util;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
@@ -83,15 +84,13 @@ public class SkullCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 2) {
-            if (args[1].isEmpty())
-                return BOOLEANS;
-            else
-                return StringUtil.copyPartialMatches(args[1], BOOLEANS, new ArrayList<>(BOOLEANS.size()));
-        } else if (args.length > 2) {
-            return ImmutableList.of();
+        switch (args.length) {
+            case 1:
+                return Util.getPlayerNames();
+            case 2:
+                return args[1].isEmpty() ? BOOLEANS : StringUtil.copyPartialMatches(args[1], BOOLEANS, new ArrayList<>(BOOLEANS.size()));
+            default:
+                return ImmutableList.of();
         }
-
-        return null;
     }
 }
