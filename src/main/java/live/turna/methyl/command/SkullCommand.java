@@ -1,10 +1,12 @@
 package live.turna.methyl.command;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.common.collect.ImmutableList;
 import live.turna.methyl.MethylLoader;
-import live.turna.methyl.util.MessageUtil;
-import live.turna.methyl.util.Util;
+import live.turna.methyl.util.*;
+import live.turna.methyl.util.exceptions.HttpStatusException;
+import live.turna.methyl.util.exceptions.RateLimitException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -20,6 +22,9 @@ import org.bukkit.util.StringUtil;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 public class SkullCommand implements TabExecutor {
@@ -72,8 +77,57 @@ public class SkullCommand implements TabExecutor {
                 ItemStack head = new ItemStack(Material.PLAYER_HEAD);
                 SkullMeta meta = (SkullMeta) head.getItemMeta();
 
-                PlayerProfile profile = Bukkit.createProfile(skullOwner + (forceYggdrasil ? "@yggdrasil" : ""));
-                profile.complete();
+                PlayerProfile profile;
+                if (forceYggdrasil) {
+                    try {
+                        UUID uuid = YggdrasilUtil.usernameToUUID(skullOwner);
+                        if (uuid == null) {
+                            player.sendMessage(MessageUtil.prepareSimpleMessage(
+                                    "外置登录服务器上找不到玩家 " + skullOwner + "，头颅获取失败！",
+                                    NamedTextColor.RED
+                            ));
+                            return;
+                        }
+
+                        profile = Bukkit.createProfile(uuid, skullOwner);
+
+                        String texture = YggdrasilUtil.getTextureFromUsername(skullOwner);
+                        if (texture != null) {
+                            Set<ProfileProperty> properties = profile.getProperties();
+                            properties.add(YggdrasilUtil.generateTextureFromMineSkin(texture));
+                            profile.setProperties(properties);
+                        } else {
+                            player.sendMessage(MessageUtil.prepareSimpleMessage(
+                                    "注意: " + skullOwner + " 并没有设置皮肤！",
+                                    NamedTextColor.YELLOW
+                            ));
+                        }
+                    } catch (Exception e) {
+                        if (e instanceof RuntimeException) {
+                            player.sendMessage(MessageUtil.prepareSimpleMessage(
+                                    "无法从外置登录获取 " + skullOwner + " 的头颅，错误信息作为参考：" + e.getMessage(),
+                                    NamedTextColor.RED
+                            ));
+                        } else if (e instanceof RateLimitException rle) {
+                            player.sendMessage(MessageUtil.prepareSimpleMessage(
+                                    "由于 API 限制，暂时无法从外置登录获取 " + skullOwner + " 的头颅，请等待 " + rle.getDelay() + " 秒后重试",
+                                    NamedTextColor.RED
+                            ));
+                        } else {
+                            if (!(e instanceof HttpStatusException))
+                                MethylLoader.getInstance().getLogger().log(Level.SEVERE, "Unexpected exception while fetching skull information", e);
+
+                            player.sendMessage(MessageUtil.prepareSimpleMessage(
+                                    "无法从外置登录获取 " + skullOwner + " 的头颅，验证服务器挂了吗？",
+                                    NamedTextColor.RED
+                            ));
+                        }
+                        return;
+                    }
+                } else {
+                    profile = Bukkit.createProfile(skullOwner);
+                    profile.complete();
+                }
                 meta.setPlayerProfile(profile);
 
                 head.setItemMeta(meta);
