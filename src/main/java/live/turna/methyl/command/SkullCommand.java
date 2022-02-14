@@ -1,11 +1,12 @@
 package live.turna.methyl.command;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import com.google.common.collect.ImmutableList;
 import live.turna.methyl.MethylLoader;
 import live.turna.methyl.util.MessageUtil;
 import live.turna.methyl.util.Util;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -26,27 +27,26 @@ public class SkullCommand implements TabExecutor {
     private static final List<String> BOOLEANS = ImmutableList.of("true", "false");
 
     @Override
-    @SuppressWarnings("deprecation")
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] args) {
         if (sender instanceof final Player player) {
-            ComponentBuilder msg = MessageUtil.prepareNewComponent();
-
             if (player.getInventory().firstEmpty() < 0) {
-                msg.append("你的背包满了，不考虑整理下吗？").color(ChatColor.RED);
-                player.spigot().sendMessage(msg.create());
+                player.sendMessage(MessageUtil.prepareSimpleMessage("你的背包满了，不考虑整理下吗？", NamedTextColor.RED));
                 return true;
             }
 
-            if (args.length < 1) {
-                msg.append("用法: ").color(ChatColor.GOLD)
-                        .append("/skull ").reset()
-                        .append("<玩家名> ").color(ChatColor.RED)
-                        .append("[强制外置登录 (true, false)]").color(ChatColor.GRAY);
-                player.spigot().sendMessage(msg.create());
+            Component msg = MessageUtil.prepareNewComponent();
 
-                msg = MessageUtil.prepareNewComponent()
-                        .append("头颅默认将会从正版用户中获取，如有和正版用户撞名字的情况可选择强制从外置登录获取").color(ChatColor.GOLD);
-                player.spigot().sendMessage(msg.create());
+            if (args.length < 1) {
+                msg = msg.append(Component.text("用法：", NamedTextColor.GOLD))
+                        .append(Component.text("/skull "))
+                        .append(Component.text("<玩家名> ", NamedTextColor.RED))
+                        .append(Component.text("[强制外置登录 (true, false)]", NamedTextColor.GRAY));
+                player.sendMessage(msg);
+
+                player.sendMessage(MessageUtil.prepareSimpleMessage(
+                        "头颅默认将会从正版用户中获取，如有和正版用户撞名字的情况可选择强制从外置登录获取",
+                        NamedTextColor.GOLD
+                ));
 
                 return true;
             }
@@ -55,27 +55,31 @@ public class SkullCommand implements TabExecutor {
             final boolean forceYggdrasil = args.length > 1 && Boolean.parseBoolean(args[1]);
 
             if (!NAME_PATTERN.matcher(skullOwner).matches()) {
-                msg.append("玩家名有误，玩家名仅有英文字母、数字和下划线，且不得短于 3 字符，不得长于 16 字符").color(ChatColor.RED);
-                player.spigot().sendMessage(msg.create());
+                player.sendMessage(MessageUtil.prepareSimpleMessage(
+                        "玩家名有误，玩家名仅有英文字母、数字和下划线，且不得短于 3 字符，不得长于 16 字符",
+                        NamedTextColor.RED
+                ));
                 return true;
             }
 
-            msg.append(forceYggdrasil ? "正在从外置登录获取 " : "正在获取 ").color(ChatColor.GOLD)
-                    .append(skullOwner).color(ChatColor.RED)
-                    .append(" 的头颅，请稍候...").color(ChatColor.GOLD);
-            player.spigot().sendMessage(msg.create());
+            msg = msg.append(Component.text(forceYggdrasil ? "正在从外置登录获取 " : "正在获取 ", NamedTextColor.GOLD))
+                    .append(Component.text(skullOwner, NamedTextColor.RED))
+                    .append(Component.text(" 的头颅，请稍候...", NamedTextColor.GOLD));
+            player.sendMessage(msg);
 
             // Using scheduler to prevent interruption of game while fetching skull information
             Bukkit.getScheduler().runTaskAsynchronously(MethylLoader.getInstance(), () -> {
                 ItemStack head = new ItemStack(Material.PLAYER_HEAD);
                 SkullMeta meta = (SkullMeta) head.getItemMeta();
-                meta.setOwningPlayer(Bukkit.getOfflinePlayer(skullOwner + (forceYggdrasil ? "@yggdrasil" : "")));
+
+                PlayerProfile profile = Bukkit.createProfile(skullOwner + (forceYggdrasil ? "@yggdrasil" : ""));
+                profile.complete();
+                meta.setPlayerProfile(profile);
+
                 head.setItemMeta(meta);
                 player.getInventory().addItem(head);
 
-                ComponentBuilder completeMsg = MessageUtil.prepareNewComponent()
-                        .append("头颅已到，请查收！").color(ChatColor.GOLD);
-                player.spigot().sendMessage(completeMsg.create());
+                player.sendMessage(MessageUtil.prepareSimpleMessage("头颅已到，请查收！", NamedTextColor.GOLD));
             });
         }
 

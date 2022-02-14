@@ -1,7 +1,8 @@
 package live.turna.methyl.util;
 
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 
 public class MessageUtil {
     /**
@@ -9,15 +10,15 @@ public class MessageUtil {
      *
      * @return New message component builder instance, with "[Methyl]" prefix
      */
-    public static ComponentBuilder prepareNewComponent() {
-        ComponentBuilder builder = new ComponentBuilder();
+    public static Component prepareNewComponent() {
+        return Component.empty()
+                .append(Component.text("[", NamedTextColor.GOLD))
+                .append(Component.text("Methyl", NamedTextColor.AQUA))
+                .append(Component.text("]", NamedTextColor.GOLD))
+                .append(Component.text(" "));
+    }
 
-        builder
-                .append("[").color(ChatColor.GOLD)
-                .append("Methyl").color(ChatColor.AQUA)
-                .append("]").color(ChatColor.GOLD)
-                .append(" ").reset();
-
-        return builder;
+    public static Component prepareSimpleMessage(String msg, TextColor color) {
+        return prepareNewComponent().append(Component.text(msg, color));
     }
 }
