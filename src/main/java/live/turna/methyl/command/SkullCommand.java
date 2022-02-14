@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.StringUtil;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -26,9 +27,8 @@ public class SkullCommand implements TabExecutor {
 
     @Override
     @SuppressWarnings("deprecation")
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player) {
-            final Player player = (Player) sender;
+    public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] args) {
+        if (sender instanceof final Player player) {
             ComponentBuilder msg = MessageUtil.prepareNewComponent();
 
             if (player.getInventory().firstEmpty() < 0) {
@@ -83,14 +83,11 @@ public class SkullCommand implements TabExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        switch (args.length) {
-            case 1:
-                return Util.getPlayerNames();
-            case 2:
-                return args[1].isEmpty() ? BOOLEANS : StringUtil.copyPartialMatches(args[1], BOOLEANS, new ArrayList<>(BOOLEANS.size()));
-            default:
-                return ImmutableList.of();
-        }
+    public List<String> onTabComplete(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String alias, String[] args) {
+        return switch (args.length) {
+            case 1 -> Util.getPlayerNames();
+            case 2 -> args[1].isEmpty() ? BOOLEANS : StringUtil.copyPartialMatches(args[1], BOOLEANS, new ArrayList<>(BOOLEANS.size()));
+            default -> ImmutableList.of();
+        };
     }
 }
