@@ -12,9 +12,7 @@ public class MessageUtil {
      */
     public static Component prepareNewComponent() {
         return Component.empty()
-                .append(Component.text("[", NamedTextColor.GOLD))
-                .append(Component.text("Methyl", NamedTextColor.AQUA))
-                .append(Component.text("]", NamedTextColor.GOLD))
+                .append(Component.text("[Methyl]", NamedTextColor.GRAY))
                 .append(Component.text(" "));
     }
 
