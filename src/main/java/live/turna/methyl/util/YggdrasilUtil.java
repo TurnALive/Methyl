@@ -22,8 +22,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class YggdrasilUtil {
-    private static final String SKIN_SERVER_ROOT = "https://user.turna.live";
-    private static final String YGGDRASIL_API = SKIN_SERVER_ROOT + "/api/yggdrasil";
     private static final String MINESKIN_API = "https://api.mineskin.org";
 
     private static final String USER_AGENT = "Methyl/1.1";
@@ -35,9 +33,9 @@ public class YggdrasilUtil {
             .build();
 
     @Nullable
-    public static UUID usernameToUUID(String username) throws IOException, InterruptedException, HttpStatusException {
+    public static UUID usernameToUUID(String skinServer, String username) throws IOException, InterruptedException, HttpStatusException {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(YGGDRASIL_API + "/api/profiles/minecraft"))
+                .uri(URI.create(skinServer + "/api/yggdrasil/api/profiles/minecraft"))
                 .header("User-Agent", USER_AGENT)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("[\"" + username + "\"]"))
@@ -62,9 +60,9 @@ public class YggdrasilUtil {
     }
 
     @Nullable
-    public static String getTextureFromUsername(String username) throws IOException, InterruptedException, HttpStatusException {
+    public static String getTextureFromUsername(String skinServer, String username) throws IOException, InterruptedException, HttpStatusException {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(SKIN_SERVER_ROOT + "/" + username + ".json"))
+                .uri(URI.create(skinServer + "/" + username + ".json"))
                 .header("User-Agent", USER_AGENT)
                 .GET()
                 .build();
@@ -90,7 +88,7 @@ public class YggdrasilUtil {
             return null;
         }
 
-        return SKIN_SERVER_ROOT + "/textures/" + texture.getAsString();
+        return skinServer + "/textures/" + texture.getAsString();
     }
 
     public static ProfileProperty generateTextureFromMineSkin(String url) throws IOException, InterruptedException, HttpStatusException, RateLimitException {

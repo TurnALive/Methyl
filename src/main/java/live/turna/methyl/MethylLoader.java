@@ -3,6 +3,7 @@ package live.turna.methyl;
 import live.turna.methyl.command.SkullCommand;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class MethylLoader extends JavaPlugin {
@@ -14,12 +15,23 @@ public final class MethylLoader extends JavaPlugin {
 
         INSTANCE = this;
 
+        initConfig();
+
         this.registerCommand("skull", new SkullCommand());
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    private void initConfig() {
+        final FileConfiguration config = this.getConfig();
+
+        config.addDefault("skull.externalSkinServer", "");
+
+        config.options().copyDefaults(true);
+        this.saveConfig();
     }
 
     /**

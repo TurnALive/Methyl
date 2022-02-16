@@ -79,8 +79,17 @@ public class SkullCommand implements TabExecutor {
 
                 PlayerProfile profile;
                 if (forceYggdrasil) {
+                    String skinServer = MethylLoader.getInstance().getConfig().getString("skull.externalSkinServer");
+                    if (skinServer == null || skinServer.isBlank() || skinServer.isEmpty()) {
+                        player.sendMessage(MessageUtil.prepareSimpleMessage(
+                                "未设置外置登录服务器，请联系服务器管理员确认配置是否正确",
+                                NamedTextColor.RED
+                        ));
+                        return;
+                    }
+
                     try {
-                        UUID uuid = YggdrasilUtil.usernameToUUID(skullOwner);
+                        UUID uuid = YggdrasilUtil.usernameToUUID(skinServer, skullOwner);
                         if (uuid == null) {
                             player.sendMessage(MessageUtil.prepareSimpleMessage(
                                     "外置登录服务器上找不到玩家 " + skullOwner + "，头颅获取失败！",
@@ -91,7 +100,7 @@ public class SkullCommand implements TabExecutor {
 
                         profile = Bukkit.createProfile(uuid, skullOwner);
 
-                        String texture = YggdrasilUtil.getTextureFromUsername(skullOwner);
+                        String texture = YggdrasilUtil.getTextureFromUsername(skinServer, skullOwner);
                         if (texture != null) {
                             Set<ProfileProperty> properties = profile.getProperties();
                             properties.add(YggdrasilUtil.generateTextureFromMineSkin(texture));
