@@ -101,16 +101,20 @@ public class SkullCommand implements TabExecutor {
                         profile = Bukkit.createProfile(uuid, skullOwner);
 
                         String texture = YggdrasilUtil.getTextureFromUsername(skinServer, skullOwner);
-                        if (texture != null) {
-                            Set<ProfileProperty> properties = profile.getProperties();
-                            properties.add(YggdrasilUtil.generateTextureFromMineSkin(texture));
-                            profile.setProperties(properties);
-                        } else {
+
+                        if (texture == null)
                             player.sendMessage(MessageUtil.prepareSimpleMessage(
                                     "注意: " + skullOwner + " 并没有设置皮肤！",
                                     NamedTextColor.GOLD
                             ));
-                        }
+
+                        Set<ProfileProperty> properties = profile.getProperties();
+                        properties.add(
+                                texture != null ?
+                                        YggdrasilUtil.generateTextureFromMineSkin(texture) :
+                                        new ProfileProperty("textures", "", "")
+                        );
+                        profile.setProperties(properties);
                     } catch (Exception e) {
                         if (e instanceof RuntimeException) {
                             player.sendMessage(MessageUtil.prepareSimpleMessage(
