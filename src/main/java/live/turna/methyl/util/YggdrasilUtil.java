@@ -1,7 +1,10 @@
 package live.turna.methyl.util;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
+import com.github.mizosoft.methanol.MediaType;
 import com.github.mizosoft.methanol.Methanol;
+import com.github.mizosoft.methanol.MoreBodyPublishers;
+import com.github.mizosoft.methanol.MultipartBodyPublisher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -91,14 +94,36 @@ public class YggdrasilUtil {
     }
 
     public static ProfileProperty generateTextureFromMineSkin(String url) throws IOException, InterruptedException, HttpStatusException, RateLimitException {
-        JsonObject reqBody = new JsonObject();
-        reqBody.addProperty("visibility", 1);
-        reqBody.addProperty("url", url);
+        HttpResponse<InputStream> imageRes;
+        try {
+            HttpRequest imageReq = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+            imageRes = CLIENT.send(imageReq, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (imageRes.statusCode() != 200)
+                throw new HttpStatusException(imageRes.statusCode());
+        } catch (Exception e) {
+            MethylLoader.getInstance().getLogger().log(Level.SEVERE, "Unexpected error occurred while fetching texture image", e);
+            throw new RuntimeException("Can't fetch texture image: " + e, e);
+        }
+
+        HttpRequest.BodyPublisher imagePart = MoreBodyPublishers.ofMediaType(
+                HttpRequest.BodyPublishers.ofInputStream(imageRes::body),
+                MediaType.IMAGE_PNG
+        );
+
+        HttpRequest.BodyPublisher reqBody = MultipartBodyPublisher.newBuilder()
+                .textPart("visibility", 1)
+                .formPart("file", "texture.png", imagePart)
+                .build();
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(MINESKIN_API + "/generate/url"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(reqBody.toString()))
+                .uri(URI.create(MINESKIN_API + "/generate/upload"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(reqBody)
                 .build();
 
         HttpResponse<InputStream> res = CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
