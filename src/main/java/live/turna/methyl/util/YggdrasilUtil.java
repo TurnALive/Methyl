@@ -1,6 +1,7 @@
 package live.turna.methyl.util;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
+import com.github.mizosoft.methanol.Methanol;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -24,19 +25,18 @@ import java.util.logging.Level;
 public class YggdrasilUtil {
     private static final String MINESKIN_API = "https://api.mineskin.org";
 
-    private static final String USER_AGENT = "Methyl/1.1";
-
-    private static final HttpClient CLIENT = HttpClient.newBuilder()
+    private static final HttpClient CLIENT = Methanol.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .followRedirects(HttpClient.Redirect.NORMAL)
-            .connectTimeout(Duration.ofSeconds(12))
+            .userAgent("Methyl/1.1")
+            .requestTimeout(Duration.ofSeconds(12))
+            .readTimeout(Duration.ofSeconds(6))
             .build();
 
     @Nullable
     public static UUID usernameToUUID(String skinServer, String username) throws IOException, InterruptedException, HttpStatusException {
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(skinServer + "/api/yggdrasil/api/profiles/minecraft"))
-                .header("User-Agent", USER_AGENT)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("[\"" + username + "\"]"))
                 .build();
@@ -63,7 +63,6 @@ public class YggdrasilUtil {
     public static String getTextureFromUsername(String skinServer, String username) throws IOException, InterruptedException, HttpStatusException {
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(skinServer + "/" + username + ".json"))
-                .header("User-Agent", USER_AGENT)
                 .GET()
                 .build();
 
@@ -98,7 +97,6 @@ public class YggdrasilUtil {
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(MINESKIN_API + "/generate/url"))
-                .header("User-Agent", USER_AGENT)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(reqBody.toString()))
                 .build();
